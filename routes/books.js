@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const models = require('../models');
 const { Book } = models;
-
+const SQUELIZE_ERROR = 'SequelizeValidationError';
 const routeHandler = callback =>{
   return async (req, res, next) => {
     try {
@@ -22,13 +22,23 @@ router.get('/',routeHandler( async (req, res) => {
 }));
 
 router.get('/new',(req, res) => {
-  res.render('new-book');
+  res.render('new-book', { book:{} });
 });
 
 router.post('/new',routeHandler( async (req, res) => {
   console.log('creating new book...',req.body);
-  await Book.create(req.body);
-  res.redirect(`/books`);
+  try {
+    await Book.create(req.body);
+    res.redirect(`/books`);    
+  } catch (err) {
+    const { name, errors } = err;
+    if(name === SQUELIZE_ERROR){
+      const book = await Book.build(req.body);
+      res.render('new-book',{ book, errors });
+    } else {
+      throw err;
+    }
+  }
 }));
 
 router.get('/:id',routeHandler( async (req, res) =>{
@@ -47,8 +57,20 @@ router.get('/:id',routeHandler( async (req, res) =>{
 router.post('/:id',routeHandler( async (req, res) =>{
   const { id } = req.params;
   const oldbook = await Book.findByPk(id);
-  await oldbook.update(req.body);
-  res.redirect(`/books`);
+  try {
+    await oldbook.update(req.body);
+    res.redirect(`/books`);
+  } catch (err) {
+    const { name, errors } = err;
+    if (name === SQUELIZE_ERROR){
+      const book = await Book.build(req.body);
+      book.id = id; // after building id is null, so reset to original id.
+      res.render('update-book',{ book, errors });
+    } else {
+      throw err;
+    }    
+  }
+  
 }));
 
 router.post('/:id/delete',routeHandler( async (req,res)=>{
