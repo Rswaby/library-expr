@@ -22,41 +22,40 @@ router.get('/',routeHandler( async (req, res) => {
 }));
 
 router.get('/new',(req, res) => {
-  res.send('<h1>new book form display</h1>');
+  res.render('new-book');
 });
 
 router.post('/new',routeHandler( async (req, res) => {
   console.log('creating new book...',req.body);
-  const newBook = await Book.create(req.body);
-  res.json(newBook);
+  await Book.create(req.body);
+  res.redirect(`/books`);
 }));
 
 router.get('/:id',routeHandler( async (req, res) =>{
-  const id = req.params.id;
+  const { id } = req.params;
   console.log(`retrieving book with id: ${id}`)
-  const oldbook = await Book.findByPk(req.params.id);
+  const book = await Book.findByPk(id);
   //todo: maybe change this to internal server error?
   if (!book){
     res.redirect(`/page-not-found/${id}`);
   }
-  res.json(book);
+  res.render('update-book',{ book });
 }));
 /**
  * update book with id = req.params.id
  */
 router.post('/:id',routeHandler( async (req, res) =>{
-  const id = req.params.id;
+  const { id } = req.params;
   const oldbook = await Book.findByPk(id);
-  const newbook = await oldbook.update(req.body);
-  res.json(newbook);
-  // res.redirect(`/books/${id}`);
+  await oldbook.update(req.body);
+  res.redirect(`/books`);
 }));
 
 router.post('/:id/delete',routeHandler( async (req,res)=>{
-  const id = req.params.id;
+  const { id } = req.params;
   console.log(`deleting record with id ${id}...`)
   const oldbook = await Book.findByPk(id);
-  const deleted = await oldbook.destroy();
-  res.json(deleted); 
+  await oldbook.destroy();
+  res.redirect(`/books`);
 }));
 module.exports = router;

@@ -4,7 +4,7 @@ block content
     h1 Books
     | &#x9;
     p
-      a.button(href='new_book.html') Create New Book
+      a.button(href='/books/new') Create New Book
     | &#x9;
     table
       thead
@@ -18,7 +18,7 @@ block content
           th Year
       | &#x9;&#x9;
       tbody
-      each book,index in books
+      each book in books
         tr
           td
             a(href=`/books/${book.id}`) #{book.title}
