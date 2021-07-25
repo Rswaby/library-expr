@@ -4,22 +4,29 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const db = require('./models');
+const { Book } = db;
 
 const indexRouter = require('./routes/index');
-const usersRouter = require('./routes/users');
+const booksRouter = require('./routes/books');
 
-const app = express();
-//init db
 (async () => {
   try {
-    await db.sequelize.authenticate();
-    await db.sequelize.sync();
-    console.log('  ')
+    await db.sequelize.sync({ force: true });
+    // await db.sequelize.authenticate();
+    // await db.sequelize.sync();
+    await Book.create({
+      title: 'Storm Front',
+      author: 'Rohan',
+      genre: 'Thriller',
+      year: 2012
+    });
     console.log('  <<< Connection to the database establised! >>>');
   } catch (error) {
     console.error('Error connecting to the database: ', error);
   }
 })();
+const app = express();
+// init db
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -31,22 +38,48 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/books', booksRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+app.use( (req, res, next)=> {
+  const error = new Error();
+  error.message = `Page Not Found for url: ${req.url}`;
+  error.status = 404;
+  next(error);
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use( (err, req, res, next) => {
   // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+  const notFound = 404;
+  const internalError = 500;
+  const catchAllError = new Error()
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
+  // if there are no error status from other middleware function
+  // assume an internal error happened
+  if(!err.status){
+      catchAllError.message = "Internal Server Error";
+      catchAllError.status = internalError;
+      catchAllError.stack = err.stack;
+  }else {
+    // set message from non found err sent by previous  middleware function
+    catchAllError.message = err.message;
+    catchAllError.status = notFound;
+    catchAllError.stack = err.stack;
+
+  }
+  res.locals.error = catchAllError;
+  res.status(catchAllError.status);
+
+  console.log('+ + + error + + +');
+  console.log(catchAllError);
+  // if error message is 404 render page-not-found and error otherwise. 
+
+  res.locals.error = req.app.get('env') === 'development' ? catchAllError : {};
+  console.log(catchAllError);
+  catchAllError.status === notFound
+        ? res.render('page-not-found',catchAllError) 
+        : res.render('error',catchAllError);
 });
 
 module.exports = app;
