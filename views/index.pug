@@ -1,5 +1,31 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+    h1 Books
+    | &#x9;
+    p
+      a.button(href='new_book.html') Create New Book
+    | &#x9;
+    table
+      thead
+        tr
+          th Title
+          | &#x9;&#x9;&#x9;&#x9;
+          th Author
+          | &#x9;&#x9;&#x9;&#x9;
+          th Genre
+          | &#x9;&#x9;&#x9;&#x9;
+          th Year
+      | &#x9;&#x9;
+      tbody
+      each book,index in books
+        tr
+          td
+            a(href=`/books/${book.id}`) #{book.title}
+          | &#x9;&#x9;&#x9;&#x9;
+          td #{book.author}
+          | &#x9;&#x9;&#x9;&#x9;
+          td #{book.genre}
+          | &#x9;&#x9;&#x9;&#x9;
+          td #{book.year}
+        | &#x9;&#x9;&#x9;  
