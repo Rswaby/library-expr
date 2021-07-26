@@ -8,18 +8,13 @@ const { Book } = db;
 
 const indexRouter = require('./routes/index');
 const booksRouter = require('./routes/books');
-
+/**
+ * check if db connected sucessfully and rebuild db after each restart. 
+ * db will will be empty.
+ */
 (async () => {
   try {
     await db.sequelize.sync({ force: true });
-    // await db.sequelize.authenticate();
-    // await db.sequelize.sync();
-    await Book.create({
-      title: 'Storm Front',
-      author: 'Rohan',
-      genre: 'Thriller',
-      year: 2012
-    });
     console.log('  <<< Connection to the database establised! >>>');
   } catch (error) {
     console.error('Error connecting to the database: ', error);
@@ -37,8 +32,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/books', booksRouter);
+app.use('/', indexRouter); //index route that will redirect to /books
+app.use('/books', booksRouter); // upper level books route which will handle all crud op
 
 // catch 404 and forward to error handler
 app.use( (req, res, next)=> {

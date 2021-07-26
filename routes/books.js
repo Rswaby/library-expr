@@ -3,6 +3,11 @@ const router = express.Router();
 const models = require('../models');
 const { Book } = models;
 const SQUELIZE_ERROR = 'SequelizeValidationError';
+/**
+ * 
+ * @param {func} callback 
+ * @returns an async function that handled our callback request.
+ */
 const routeHandler = callback =>{
   return async (req, res, next) => {
     try {
@@ -20,11 +25,16 @@ router.get('/',routeHandler( async (req, res) => {
   console.log(`returned ${books.length} books from db`);
   res.render('index', {books});
 }));
-
+/**
+ * this route will render the form for creating a new book
+ */
 router.get('/new',(req, res) => {
   res.render('new-book', { book:{} });
 });
-
+/**
+ * This method will handle the request to create a new book
+ * and handles any errors for missing fields 
+ */
 router.post('/new',routeHandler( async (req, res) => {
   console.log('creating new book...',req.body);
   try {
@@ -40,7 +50,10 @@ router.post('/new',routeHandler( async (req, res) => {
     }
   }
 }));
-
+/**
+ * This method will handle retrieving books by ids and rendering a 
+ * form for updating a book
+ */
 router.get('/:id',routeHandler( async (req, res) =>{
   const { id } = req.params;
   console.log(`retrieving book with id: ${id}`)
@@ -52,6 +65,8 @@ router.get('/:id',routeHandler( async (req, res) =>{
   res.render('update-book',{ book });
 }));
 /**
+ * This method is responsible for updating a book and 
+ * returning any errors squelize sent back about missing fields 
  * update book with id = req.params.id
  */
 router.post('/:id',routeHandler( async (req, res) =>{
@@ -72,7 +87,9 @@ router.post('/:id',routeHandler( async (req, res) =>{
   }
   
 }));
-
+/**
+ * delete a specific book by id.
+ */
 router.post('/:id/delete',routeHandler( async (req,res)=>{
   const { id } = req.params;
   console.log(`deleting record with id ${id}...`)
